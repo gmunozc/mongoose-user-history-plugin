@@ -1,6 +1,8 @@
 # Mongoose User History Plugin
 
-The Mongoose User History Plugin is designed to provide an extensive and detailed log of all modifications made to documents within a MongoDB collection managed by Mongoose. This functionality is crucial for applications that require an audit trail or version control of document changes over time. By capturing a comprehensive history of each document's evolution, the plugin facilitates better data management, accountability, and traceability.
+The Mongoose User History Plugin is designed to provide an extensive and detailed log of all modifications made to documents within a MongoDB collection managed by Mongoose.
+
+This functionality is crucial for applications that require an audit trail or version control of document changes over time. By capturing a comprehensive history of each document's evolution, the plugin facilitates better data management, accountability, and traceability.
 
 [![NPM version](https://badge.fury.io/js/mongoose-user-history-plugin.svg)](http://badge.fury.io/js/mongoose-user-history-plugin) [![NPM Downloads](https://img.shields.io/npm/dm/mongoose-user-history-plugin.svg)](https://www.npmjs.com/mongoose-user-history-plugin)
 
