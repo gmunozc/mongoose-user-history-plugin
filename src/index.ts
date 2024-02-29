@@ -1,4 +1,4 @@
-import mongoose, { FilterQuery, Query, Schema, Types } from 'mongoose';
+import mongoose, { FilterQuery, Query, Schema } from 'mongoose';
 import deepDiff, { arrayEquals } from './libs/deep-diff';
 import { HistoryModel, IPluginOptions, initializeDefaultSchema } from './libs/history.model';
 import contextService from 'request-context';
@@ -38,7 +38,7 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
     diffOnly: false,
     modifiedBy: {
       contextPath: 'request:userInfo',
-      schemaType: Types.ObjectId,
+      schemaType: Schema.Types.ObjectId,
     },
     ...options,
   };

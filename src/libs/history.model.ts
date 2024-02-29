@@ -50,9 +50,7 @@ const HistoryModel = function (
   connection: mongoose.Connection,
   options?: IPluginOptions
 ) {
-  const indexes = options?.indexes;
-  const metadata = options?.metadata;
-  const addUserWhoModifies = options?.modifiedBy;
+  const { indexes, metadata, modifiedBy } = options ?? {};
 
   const schemaObject: Record<string, any> = {
     collectionName: { type: String, required: false },
@@ -73,8 +71,8 @@ const HistoryModel = function (
     });
   }
 
-  if (addUserWhoModifies) {
-    schemaObject.modifiedBy = { type: addUserWhoModifies.schemaType };
+  if (modifiedBy?.schemaType) {
+    schemaObject.modifiedBy = { type: modifiedBy.schemaType };
   }
 
   const ChangeHistorySchema: Schema = new Schema(schemaObject);
