@@ -292,7 +292,12 @@ function saveHistory({
   connection: mongoose.Connection;
   options?: IPluginOptions;
 }): Promise<void> {
-  const changes = deepDiff(currentDocument, oldDocument, true);
+  const changes = deepDiff({
+    currentDocument,
+    oldDocument,
+    omitPaths: options?.omitPaths,
+    keepNewKeys: options?.keepNewKeys,
+  });
   if (changes) {
     const history = initializeDefaultSchema({ connection, options });
     return new history({

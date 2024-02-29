@@ -4,13 +4,13 @@ describe('deepDiff', () => {
   test('should return null for identical objects', () => {
     const obj1 = { name: 'John', age: 30 };
     const obj2 = { name: 'John', age: 30 };
-    expect(deepDiff(obj1, obj2)).toBeNull();
+    expect(deepDiff({ currentDocument: obj1, oldDocument: obj2 })).toBeNull();
   });
 
   test('should detect basic differences', () => {
     const current = { name: 'John', age: 30 };
     const old = { name: 'Jane', age: 25 };
-    expect(deepDiff(current, old)).toEqual({
+    expect(deepDiff({ currentDocument: current, oldDocument: old })).toEqual({
       name: { new: 'John', old: 'Jane' },
       age: { new: 30, old: 25 },
     });
@@ -19,13 +19,15 @@ describe('deepDiff', () => {
   test('should respect keepNewKeys option', () => {
     const current = { name: 'John', age: 30, location: 'City' };
     const old = { name: 'John', age: 30 };
-    expect(deepDiff(current, old, true)).toEqual({ location: { new: 'City', old: null } });
+    expect(deepDiff({ currentDocument: current, oldDocument: old, keepNewKeys: true })).toEqual({
+      location: { new: 'City', old: null },
+    });
   });
 
   test('should handle deep differences', () => {
     const current = { person: { name: 'John', age: 30 } };
     const old = { person: { name: 'Jane', age: 25 } };
-    expect(deepDiff(current, old)).toEqual({
+    expect(deepDiff({ currentDocument: current, oldDocument: old })).toEqual({
       person: { name: { new: 'John', old: 'Jane' }, age: { new: 30, old: 25 } },
     });
   });

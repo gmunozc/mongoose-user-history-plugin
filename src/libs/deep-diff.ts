@@ -2,7 +2,12 @@
  * Type definition for objects that can be compared.
  */
 type ComparableObject = Record<string, any>;
-
+type DiffOptions = {
+  currentDocument: ComparableObject;
+  oldDocument: ComparableObject;
+  omitPaths?: string[];
+  keepNewKeys?: boolean;
+};
 /**
  * Calculates the deep difference between two objects.
  *
@@ -12,11 +17,12 @@ type ComparableObject = Record<string, any>;
  * @returns The deep difference between currentDocument and oldDocument, or null if there is no difference.
  * @throws {TypeError} If either currentDocument or oldDocument is not an object.
  */
-function deepDiff(
-  currentDocument: ComparableObject,
-  oldDocument: ComparableObject,
-  keepNewKeys = false
-): ComparableObject | null {
+function deepDiff({
+  currentDocument,
+  oldDocument,
+  omitPaths = [],
+  keepNewKeys = false,
+}: DiffOptions): ComparableObject | null {
   // Check if currentDocument is an object
   if (typeof currentDocument !== 'object') {
     throw new TypeError('First parameter must be an object');
@@ -33,7 +39,7 @@ function deepDiff(
   // Iterate over the keys of oldDocument
   Object.keys({ ...currentDocument, ...oldDocument }).forEach((key) => {
     // Skip the keys that are not relevant
-    if (['_id', 'updatedAt', 'createdAt'].includes(key)) {
+    if (['_id', 'updatedAt', 'createdAt', ...omitPaths].includes(key)) {
       return;
     }
 
@@ -58,7 +64,11 @@ function deepDiff(
       } else if (newValue instanceof Date && oldValue instanceof Date) {
         if (newValue.getTime() !== oldValue.getTime()) diff[key] = { new: newValue, old: oldValue };
       } else {
-        const deeperDiff = deepDiff(newValue, oldValue, keepNewKeys);
+        const deeperDiff = deepDiff({
+          currentDocument: newValue,
+          oldDocument: oldValue,
+          keepNewKeys,
+        });
         if (deeperDiff) diff[key] = deeperDiff;
       }
     } else if (newValue !== oldValue) {
@@ -89,7 +99,7 @@ function arrayEquals(arr1: any[], arr2: any[]): boolean {
     if (Array.isArray(item) && Array.isArray(item2)) {
       return arrayEquals(item, item2);
     } else if (typeof item === 'object' && typeof item2 === 'object') {
-      return deepDiff(item, item2, true) === null;
+      return deepDiff({ currentDocument: item, oldDocument: item2, keepNewKeys: true }) === null;
     }
     return item === item2;
   });

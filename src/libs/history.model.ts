@@ -13,6 +13,8 @@ interface IPluginOptions {
   diffOnly?: boolean;
   customCollectionName?: string;
   indexes?: IndexDefinition[];
+  omitPaths?: string[];
+  keepNewKeys?: boolean;
   metadata?: Record<string, any>;
   modifiedBy?: {
     schemaType: any;
@@ -48,9 +50,9 @@ const HistoryModel = function (
   connection: mongoose.Connection,
   options?: IPluginOptions
 ) {
-  const indexes = options && options.indexes;
-  const metadata = options && options.metadata;
-  const addUserWhoModifies = options && options.modifiedBy;
+  const indexes = options?.indexes;
+  const metadata = options?.metadata;
+  const addUserWhoModifies = options?.modifiedBy;
 
   const schemaObject: Record<string, any> = {
     collectionName: { type: String, required: false },
