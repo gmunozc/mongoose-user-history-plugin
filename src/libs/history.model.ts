@@ -6,6 +6,9 @@
 
 import mongoose, { Schema, Document, IndexDefinition } from 'mongoose';
 
+/*
+ * Metadata options for the history model.
+ */
 interface IMetadataOption {
   key: string;
   value: string | ((original: any, newObject: any) => any);
