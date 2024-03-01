@@ -1,7 +1,21 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import UserModel from './basicUser.schema';
 import { initializeDefaultSchema } from '../../../src/index';
+import contextService from 'request-context';
+
+jest.mock('request-context', () => {
+  const actualContextService = jest.requireActual('request-context');
+  let context = {};
+  return {
+    ...actualContextService,
+    get: jest.fn((path) => context[path]),
+    set: jest.fn((path, value) => {
+      context[path] = value;
+    }),
+    middleware: jest.fn(() => (req, res, next) => next()),
+  };
+});
 
 let mongod: MongoMemoryServer;
 let HistoryModel: mongoose.Model<any>;
@@ -12,6 +26,11 @@ beforeAll(async () => {
   await mongoose.connect(uri);
 
   mongoose.set('debug', false);
+
+  // Mocked user info, you could change this to be dynamic if needed
+  const mockUserId = new Types.ObjectId();
+  const contextService = require('request-context');
+  contextService.set('request:userInfo', { _id: mockUserId });
 
   // Initialize the history model with the current Mongoose connection
   HistoryModel = initializeDefaultSchema({
