@@ -134,6 +134,22 @@ PostSchema.plugin(mongooseHistory, {
 });
 ```
 
+## History Record Format
+
+The plugin automatically stores history records for each operation performed on the documents within your collections. The format of these history records is determined by the plugin's configuration and the type of operation (create, update, delete). Below is an explanation of how history records are stored, using default settings:
+
+- **Create Operation**: When a new document is created, a history record is generated capturing the initial state of the document. The `action` field is set to "created" and the `currentDocument` field contains the snapshot of the document at the time of creation.
+- **Update Operation**: Updates to a document result in a history record that includes both the previous (`oldDocument`) and updated (`currentDocument`) states of the document. The `changes` field details the modifications made, providing a before-and-after comparison.
+- **Delete Operation**: Deletion of a document leads to a history record with the `action` field set to "deleted". The `oldDocument` field stores the last known state of the document before it was removed.
+
+Here's an example of what history records might look like for different operations:
+
+![](assets/20240229_220309_example.png)
+
+Each history record includes a timestamp (`createdAt`) indicating when the change was made. Depending on the plugin options used, additional information such as the user who made the change (`modifiedBy`) and any extra metadata can also be stored.
+
+By default, history records are stored in a collection named 'History', but this can be customized via the plugin's configuration options.
+
 ## Use Cases
 
 - **Audit Logs:** For applications that need to maintain a record of who changed what and when, the plugin provides a straightforward solution for generating audit logs.
