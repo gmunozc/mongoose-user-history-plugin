@@ -313,7 +313,7 @@ function saveHistory({
     omitPaths: options?.omitPaths,
     keepNewKeys: options?.keepNewKeys,
   });
-  console.log({ changes });
+  // console.log({ changes });
   if (changes) {
     const history = initializeDefaultSchema({ connection, options });
     return new history({

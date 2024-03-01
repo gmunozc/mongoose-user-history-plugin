@@ -54,7 +54,6 @@ describe('User Model with History Plugin', () => {
     // Delete user
     await UserModel.deleteOne({ _id: newUser._id });
 
-    // Puedes usar algo como HistoryModel.find() si tienes un modelo para la colección de historial
     const histories = await HistoryModel.find({});
     console.log({ histories: JSON.stringify(histories) });
     expect(histories.length).toBeGreaterThan(0);
