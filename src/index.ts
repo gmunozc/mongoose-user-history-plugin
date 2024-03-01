@@ -40,6 +40,7 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
       contextPath: 'request:userInfo',
       schemaType: Schema.Types.ObjectId,
     },
+    indexes: [{ collectionName: 1, action: 1, modifiedBy: 1 }],
     ...options,
   };
   const addUserWhoModifies = options.modifiedBy;

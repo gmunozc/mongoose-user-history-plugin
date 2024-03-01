@@ -6,6 +6,12 @@
 
 import mongoose, { Schema, Document, IndexDefinition } from 'mongoose';
 
+interface IMetadataOption {
+  key: string;
+  value: string | ((original: any, newObject: any) => any);
+  schema?: Schema;
+}
+
 /**
  * Options for configuring the HistoryModel.
  */
@@ -15,7 +21,7 @@ interface IPluginOptions {
   indexes?: IndexDefinition[];
   omitPaths?: string[];
   keepNewKeys?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: IMetadataOption[];
   modifiedBy?: {
     schemaType: any;
     contextPath: string;
@@ -71,16 +77,24 @@ const HistoryModel = function (
     });
   }
 
+  // Apply metadata if they are provided in the options
+  if (options?.metadata) {
+    for (const meta of options.metadata) {
+      schemaObject[meta.key] = meta.schema || { type: mongoose.Schema.Types.Mixed };
+    }
+  }
+
   if (modifiedBy?.schemaType) {
     schemaObject.modifiedBy = { type: modifiedBy.schemaType };
   }
 
   const ChangeHistorySchema: Schema = new Schema(schemaObject);
 
-  if (indexes) {
-    indexes.forEach((idx) => {
-      ChangeHistorySchema.index(idx);
-    });
+  // Apply indexes if they are provided in the options
+  if (options?.indexes) {
+    for (const index of options.indexes) {
+      ChangeHistorySchema.index(index);
+    }
   }
 
   const ChangeHistory = connection.model<IChangeHistory>(collectionName, ChangeHistorySchema);

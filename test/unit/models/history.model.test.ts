@@ -2,7 +2,6 @@ import mongoose, { Types } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import UserModel from './basicUser.schema';
 import { initializeDefaultSchema } from '../../../src/index';
-import contextService from 'request-context';
 
 jest.mock('request-context', () => {
   const actualContextService = jest.requireActual('request-context');
