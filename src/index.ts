@@ -245,13 +245,28 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
 
       modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
+      // console.log({ modelName, action: method, queryConditions, updateQuery, modifiedBy });
+
       const oldDocument = await this.findOne(queryConditions).clone();
       const oldDocumentObject = oldDocument.toObject();
       const currentDocument = oldDocument.normalizeObjectWithModel({
         ...oldDocumentObject,
-        ...updateQuery.$set,
-        ...updateQuery.$unset,
+        ...Object.entries(updateQuery.$set ?? updateQuery).reduce(
+          (acc, [key, value]) => ({ ...acc, [key]: value }),
+          {}
+        ),
+        ...Object.entries(updateQuery.$unset ?? {}).reduce(
+          (acc, [key]) => ({ ...acc, [key]: undefined }),
+          {}
+        ),
       });
+
+      // Add [Symbol.iterator]() method to Record<string, any> type
+      type RecordWithIterator = Record<string, any> & {
+        [Symbol.iterator](): IterableIterator<any>;
+      };
+
+      const normalizedDocument: RecordWithIterator = currentDocument;
 
       await saveHistory({
         action,
@@ -298,6 +313,7 @@ function saveHistory({
     omitPaths: options?.omitPaths,
     keepNewKeys: options?.keepNewKeys,
   });
+  console.log({ changes });
   if (changes) {
     const history = initializeDefaultSchema({ connection, options });
     return new history({

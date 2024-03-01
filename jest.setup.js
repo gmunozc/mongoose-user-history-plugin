@@ -1,14 +1,14 @@
-const { MongoMemoryServer } = require('mongodb-memory-server');
+// const { MongoMemoryServer } = require('mongodb-memory-server');
 
-let mongoServer;
+// let mongoServer;
 
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGO_URI = mongoServer.getUri();
-});
+// beforeAll(async () => {
+//   mongoServer = await MongoMemoryServer.create();
+//   process.env.MONGO_URI = mongoServer.getUri();
+// });
 
-afterAll(async () => {
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
-});
+// afterAll(async () => {
+//   if (mongoServer) {
+//     await mongoServer.stop();
+//   }
+// });
