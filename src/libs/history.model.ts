@@ -71,12 +71,6 @@ const HistoryModel = function (
     createdAt: { type: Date, default: Date.now },
   };
 
-  if (metadata) {
-    metadata.forEach((m) => {
-      schemaObject[m.key] = m.schema || { type: mongoose.Schema.Types.Mixed };
-    });
-  }
-
   // Apply metadata if they are provided in the options
   if (options?.metadata) {
     for (const meta of options.metadata) {
@@ -84,6 +78,7 @@ const HistoryModel = function (
     }
   }
 
+  // Apply modifiedBy if they are provided in the options
   if (modifiedBy?.schemaType) {
     schemaObject.modifiedBy = { type: modifiedBy.schemaType };
   }
