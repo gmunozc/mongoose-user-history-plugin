@@ -13,11 +13,11 @@ beforeAll(async () => {
 
   mongoose.set('debug', false);
 
-  // Inicializar el modelo de historial con la conexión de Mongoose actual
+  // Initialize the history model with the current Mongoose connection
   HistoryModel = initializeDefaultSchema({
     connection: mongoose.connection,
     options: {
-      // Opciones de configuración, si las hay
+      // Configuration options, if any
     },
   });
 });
@@ -28,18 +28,13 @@ afterAll(async () => {
 });
 
 describe('User Model with History Plugin', () => {
-  // Aplica el plugin al modelo de usuario aquí si no se ha aplicado globalmente
-  // beforeAll(() => {
-  //   UserModel.schema.plugin(mongooseHistoryPlugin);
-  // });
-
   it('should create, update, and delete a user and record history', async () => {
-    // Crear usuario
+    // Create user
     let newUser = await UserModel.create({ fullName: 'John Doe', email: 'john@example.com' });
     expect(newUser).toBeDefined();
     expect(newUser.fullName).toBe('John Doe');
 
-    // Crear usuario
+    // Create user
     const toUpdatedUser = await UserModel.create({
       fullName: 'John Doe',
       email: 'john@example.com',
@@ -47,7 +42,7 @@ describe('User Model with History Plugin', () => {
     expect(toUpdatedUser).toBeDefined();
     expect(newUser.fullName).toBe('John Doe');
 
-    // Actualizar usuario
+    // Update user
     const updatedUser = await UserModel.findByIdAndUpdate(
       toUpdatedUser._id,
       { fullName: 'Jane Doe' },
@@ -56,9 +51,9 @@ describe('User Model with History Plugin', () => {
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.fullName).toBe('Jane Doe');
 
+    // Delete user
     await UserModel.deleteOne({ _id: newUser._id });
 
-    // Verificar historial (Este paso depende de cómo accedas a la colección de historial)
     // Puedes usar algo como HistoryModel.find() si tienes un modelo para la colección de historial
     const histories = await HistoryModel.find({});
     console.log({ histories: JSON.stringify(histories) });
