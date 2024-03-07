@@ -4,7 +4,7 @@
  * as well as the IPluginOptions and IChangeHistory interfaces.
  */
 
-import mongoose, { Schema, Document, IndexDefinition } from 'mongoose';
+import { Schema, Document, IndexDefinition, Connection } from 'mongoose';
 
 /*
  * Metadata options for the history model.
@@ -56,7 +56,7 @@ interface IChangeHistory extends Document {
  */
 const HistoryModel = function (
   collectionName: string,
-  connection: mongoose.Connection,
+  connection: Connection,
   options?: IPluginOptions
 ) {
   const { indexes, metadata, modifiedBy } = options ?? {};
@@ -75,9 +75,9 @@ const HistoryModel = function (
   };
 
   // Apply metadata if they are provided in the options
-  if (options?.metadata) {
+  if (metadata) {
     for (const meta of options.metadata) {
-      schemaObject[meta.key] = meta.schema || { type: mongoose.Schema.Types.Mixed };
+      schemaObject[meta.key] = meta.schema || { type: Schema.Types.Mixed };
     }
   }
 
@@ -89,8 +89,8 @@ const HistoryModel = function (
   const ChangeHistorySchema: Schema = new Schema(schemaObject);
 
   // Apply indexes if they are provided in the options
-  if (options?.indexes) {
-    for (const index of options.indexes) {
+  if (indexes) {
+    for (const index of indexes) {
       ChangeHistorySchema.index(index);
     }
   }
@@ -109,7 +109,7 @@ const initializeDefaultSchema = ({
   connection,
   options,
 }: {
-  connection: mongoose.Connection;
+  connection: Connection;
   options?: IPluginOptions;
 }) => {
   const { customCollectionName } = options ?? {};

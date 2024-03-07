@@ -1,12 +1,12 @@
-import mongoose, { FilterQuery, Query, Schema } from 'mongoose';
+import { FilterQuery, Query, Schema, Document, Model, Connection } from 'mongoose';
 import deepDiff, { arrayEquals } from './libs/deep-diff';
 import { HistoryModel, IPluginOptions, initializeDefaultSchema } from './libs/history.model';
 import contextService from 'request-context';
 
 interface IDocumentMethods {
   _original: any;
-  normalizeObjectWithModel(data: any): mongoose.Document;
-  getModelFromThis(): mongoose.Model<mongoose.Document>;
+  normalizeObjectWithModel(data: any): Document;
+  getModelFromThis(): Model<Document>;
 }
 
 interface ICustomDocument extends Document, IDocumentMethods {}
@@ -22,7 +22,7 @@ interface QueryWithOp<
   THelpers = Record<string, any>,
   RawDocType = DocType,
   QueryOp = any,
-> extends mongoose.Query<ResultType, DocType, THelpers, RawDocType, QueryOp> {
+> extends Query<ResultType, DocType, THelpers, RawDocType, QueryOp> {
   op: string;
 }
 
@@ -30,8 +30,8 @@ interface IStaticMethods {
   clearHistory(callback: (err?: any) => void): void;
 }
 
-function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
-  schema: mongoose.Schema,
+function HistoryPlugin<T extends Document<any, any, any>>(
+  schema: Schema,
   options?: IPluginOptions
 ) {
   options = {
@@ -48,7 +48,7 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
   let modifiedBy = null;
 
   // Generate object from current schema
-  schema.methods.normalizeObjectWithModel = function (data: any): mongoose.Document {
+  schema.methods.normalizeObjectWithModel = function (data: any): Document {
     const Model = this.constructor;
     delete data._id;
     const newObj = new Model(data);
@@ -56,7 +56,7 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
   };
 
   // Get model from current schema
-  schema.methods.getModelFromThis = function (): mongoose.Model<mongoose.Document> {
+  schema.methods.getModelFromThis = function (): Model<Document> {
     return this.constructor;
   };
 
@@ -231,6 +231,34 @@ function HistoryPlugin<T extends mongoose.Document<any, any, any>>(
     next();
   });
 
+  schema.post(/updateMany/, async function (this: QueryWithOp, next) {
+    const queryConditions: FilterQuery<any> = this.getQuery();
+    const updateOperation: IUpdateQuery = this.getUpdate() as IUpdateQuery;
+    const {
+      modelName,
+      collection: { collectionName },
+      db: connection,
+    } = this.model;
+    // const action = 'updated';
+    const method = this.op; // 'updateMany' o 'update'
+
+    modifiedBy = contextService.get(addUserWhoModifies.contextPath);
+
+    console.log({ modelName, action: method, queryConditions, updateOperation, modifiedBy });
+
+    /*await saveHistory({
+      action,
+      modelName,
+      modifiedBy,
+      collectionName,
+      connection,
+      queryConditions, // Condiciones de la consulta que selecciona el/los documento(s) para actualizar
+      updateOperation, // Operación de actualización aplicada
+    });*/
+
+    next();
+  });
+
   schema.pre<Query<any, Document>>(
     /updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/,
     async function (this: QueryWithOp, next): Promise<void> {
@@ -305,7 +333,7 @@ function saveHistory({
   collectionName: string;
   oldDocument: any;
   currentDocument: any;
-  connection: mongoose.Connection;
+  connection: Connection;
   options?: IPluginOptions;
 }): Promise<void> {
   const changes = deepDiff({
