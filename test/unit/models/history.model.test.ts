@@ -69,6 +69,30 @@ describe('User Model with History Plugin', () => {
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.fullName).toBe('Jane Doe');
 
+    // findOneAndUpdate user
+    const updatedUser3 = await UserModel.findOneAndUpdate(
+      { _id: toUpdatedUser._id },
+      { $set: { fullName: 'Jane Doe' } }
+    );
+    expect(updatedUser3).toBeDefined();
+    expect(updatedUser3?.fullName).toBe('Jane Doe');
+
+    // updateMany user
+    const updatedUser4 = await UserModel.updateMany(
+      { _id: toUpdatedUser._id },
+      { $set: { fullName: 'Jane Doe' } }
+    );
+    expect(updatedUser4).toBeDefined();
+    // expect(updatedUser4?.fullName).toBe('Jane Doe');
+
+    // updateOne user
+    const updatedUser5 = await UserModel.updateOne(
+      { _id: toUpdatedUser._id },
+      { $set: { fullName: 'Jane Doe' } }
+    );
+    expect(updatedUser5).toBeDefined();
+    // expect(updatedUser5?.fullName).toBe('Jane Doe');
+
     // Delete user
     await UserModel.deleteOne({ _id: newUser._id });
 

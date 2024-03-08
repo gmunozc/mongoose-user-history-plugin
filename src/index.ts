@@ -1,6 +1,12 @@
 import { FilterQuery, Query, Schema, Document, Model, Connection } from 'mongoose';
 import deepDiff, { arrayEquals } from './libs/deep-diff';
-import { HistoryModel, IPluginOptions, initializeDefaultSchema } from './libs/history.model';
+import {
+  HistoryModel,
+  HistorySchema,
+  IHistory,
+  IPluginOptions,
+  initializeDefaultSchema,
+} from './libs/history.model';
 import contextService from 'request-context';
 
 interface IDocumentMethods {
@@ -231,33 +237,33 @@ function HistoryPlugin<T extends Document<any, any, any>>(
     next();
   });
 
-  schema.post(/updateMany/, async function (this: QueryWithOp, next) {
-    const queryConditions: FilterQuery<any> = this.getQuery();
-    const updateOperation: IUpdateQuery = this.getUpdate() as IUpdateQuery;
-    const {
-      modelName,
-      collection: { collectionName },
-      db: connection,
-    } = this.model;
-    // const action = 'updated';
-    const method = this.op; // 'updateMany' o 'update'
+  // schema.post(/updateMany/, async function (this: QueryWithOp, next) {
+  //   const queryConditions: FilterQuery<any> = this.getQuery();
+  //   const updateOperation: IUpdateQuery = this.getUpdate() as IUpdateQuery;
+  //   const {
+  //     modelName,
+  //     collection: { collectionName },
+  //     db: connection,
+  //   } = this.model;
+  //   // const action = 'updated';
+  //   const method = this.op; // 'updateMany' o 'update'
 
-    modifiedBy = contextService.get(addUserWhoModifies.contextPath);
+  //   modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-    console.log({ modelName, action: method, queryConditions, updateOperation, modifiedBy });
+  //   console.log({ modelName, action: method, queryConditions, updateOperation, modifiedBy });
 
-    /*await saveHistory({
-      action,
-      modelName,
-      modifiedBy,
-      collectionName,
-      connection,
-      queryConditions, // Condiciones de la consulta que selecciona el/los documento(s) para actualizar
-      updateOperation, // Operación de actualización aplicada
-    });*/
+  //   /*await saveHistory({
+  //     action,
+  //     modelName,
+  //     modifiedBy,
+  //     collectionName,
+  //     connection,
+  //     queryConditions, // Condiciones de la consulta que selecciona el/los documento(s) para actualizar
+  //     updateOperation, // Operación de actualización aplicada
+  //   });*/
 
-    next();
-  });
+  //   next();
+  // });
 
   schema.pre<Query<any, Document>>(
     /updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/,
@@ -360,5 +366,13 @@ function saveHistory({
   return Promise.resolve();
 }
 
-export { deepDiff, arrayEquals, initializeDefaultSchema, HistoryModel, IPluginOptions };
+export {
+  deepDiff,
+  arrayEquals,
+  initializeDefaultSchema,
+  HistoryModel,
+  HistorySchema,
+  IPluginOptions,
+  IHistory,
+};
 export default HistoryPlugin;
