@@ -5,47 +5,7 @@
  */
 
 import { Schema, Document, IndexDefinition, Connection } from 'mongoose';
-
-/*
- * Metadata options for the history model.
- */
-interface IMetadataOption {
-  key: string;
-  value: string | ((original: any, newObject: any) => any);
-  schema?: Schema;
-}
-
-/**
- * Options for configuring the HistoryModel.
- */
-interface IPluginOptions {
-  diffOnly?: boolean;
-  customCollectionName?: string;
-  indexes?: IndexDefinition[];
-  omitPaths?: string[];
-  keepNewKeys?: boolean;
-  metadata?: IMetadataOption[];
-  modifiedBy?: {
-    schemaType: any;
-    contextPath: string;
-  };
-}
-
-/**
- * Represents a change history document.
- */
-interface IHistory extends Document {
-  collectionName: string;
-  modelName: string;
-  documentId: string;
-  modifiedBy: any;
-  changes: object;
-  oldDocument: object;
-  currentDocument: object;
-  action: string;
-  method: string;
-  createdAt: Date;
-}
+import { IHistory, IPluginOptions } from '..';
 
 /**
  * Represents the schema for the change history model.
@@ -80,15 +40,15 @@ const HistorySchema = (options?: IPluginOptions) => {
     schemaObject.modifiedBy = { type: modifiedBy.schemaType };
   }
 
-  const HistorySchema: Schema = new Schema(schemaObject);
+  const historySchema: Schema = new Schema(schemaObject);
 
   // Apply indexes if they are provided in the options
   if (indexes) {
     for (const index of indexes) {
-      HistorySchema.index(index);
+      historySchema.index(index);
     }
   }
-  return HistorySchema;
+  return historySchema;
 };
 
 /**
@@ -128,5 +88,5 @@ const initializeDefaultSchema = ({
   return connection.models[collectionName];
 };
 
-export { IPluginOptions, IHistory, HistoryModel, initializeDefaultSchema, HistorySchema };
+export { HistoryModel, initializeDefaultSchema, HistorySchema };
 export default HistoryModel;

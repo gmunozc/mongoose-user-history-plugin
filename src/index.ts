@@ -1,12 +1,6 @@
-import { FilterQuery, Query, Schema, Document, Model, Connection } from 'mongoose';
+import { FilterQuery, Query, Schema, Document, Model, Connection, IndexDefinition } from 'mongoose';
 import deepDiff, { arrayEquals } from './libs/deep-diff';
-import {
-  HistoryModel,
-  HistorySchema,
-  IHistory,
-  IPluginOptions,
-  initializeDefaultSchema,
-} from './libs/history.model';
+import { HistoryModel, HistorySchema, initializeDefaultSchema } from './libs/history.model';
 import contextService from 'request-context';
 
 interface IDocumentMethods {
@@ -34,6 +28,31 @@ interface QueryWithOp<
 
 interface IStaticMethods {
   clearHistory(callback: (err?: any) => void): void;
+}
+
+/*
+ * Metadata options for the history model.
+ */
+export interface IMetadataOption {
+  key: string;
+  value: string | ((original: any, newObject: any) => any);
+  schema?: Schema;
+}
+
+/**
+ * Options for configuring the HistoryModel.
+ */
+export interface IPluginOptions {
+  diffOnly?: boolean;
+  customCollectionName?: string;
+  indexes?: IndexDefinition[];
+  omitPaths?: string[];
+  keepNewKeys?: boolean;
+  metadata?: IMetadataOption[];
+  modifiedBy?: {
+    schemaType: any;
+    contextPath: string;
+  };
 }
 
 function HistoryPlugin<T extends Document<any, any, any>>(
@@ -366,13 +385,21 @@ function saveHistory({
   return Promise.resolve();
 }
 
-export {
-  deepDiff,
-  arrayEquals,
-  initializeDefaultSchema,
-  HistoryModel,
-  HistorySchema,
-  IPluginOptions,
-  IHistory,
-};
+/**
+ * Represents a change history document.
+ */
+export interface IHistory extends Document {
+  collectionName: string;
+  modelName: string;
+  documentId: string;
+  modifiedBy: any;
+  changes: object;
+  oldDocument: object;
+  currentDocument: object;
+  action: string;
+  method: string;
+  createdAt: Date;
+}
+
+export { deepDiff, arrayEquals, initializeDefaultSchema, HistoryModel, HistorySchema };
 export default HistoryPlugin;
