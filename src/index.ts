@@ -241,7 +241,14 @@ function HistoryPlugin<T extends Document<any, any, any>>(
 
     modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-    console.log({ modelName, action: method, queryConditions, updateOperation, modifiedBy });
+    console.log({
+      key: '/update|updateMany/',
+      modelName,
+      action: method,
+      queryConditions,
+      updateOperation,
+      modifiedBy,
+    });
 
     /*await saveHistory({
       action,
@@ -287,52 +294,64 @@ function HistoryPlugin<T extends Document<any, any, any>>(
   schema.pre<Query<any, Document>>(
     /updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/,
     async function (this: QueryWithOp, next): Promise<void> {
-      const queryConditions: FilterQuery<any> = this.getQuery();
-      const {
-        modelName,
-        collection: { collectionName },
-        db: connection,
-      } = this.model;
-      const updateQuery: IUpdateQuery = this.getUpdate() as IUpdateQuery;
-      const action = 'updated';
-      const method = this.op;
+      try {
+        const queryConditions: FilterQuery<any> = this.getQuery();
+        const {
+          modelName,
+          collection: { collectionName },
+          db: connection,
+        } = this.model;
+        const updateQuery: IUpdateQuery = this.getUpdate() as IUpdateQuery;
+        const action = 'updated';
+        const method = this.op;
 
-      modifiedBy = contextService.get(addUserWhoModifies.contextPath);
+        modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-      // console.log({ modelName, action: method, queryConditions, updateQuery, modifiedBy });
+        console.log({
+          key: '/updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/',
+          modelName,
+          action: method,
+          queryConditions,
+          updateQuery,
+          modifiedBy,
+        });
 
-      const oldDocument = await this.findOne(queryConditions).clone();
-      const oldDocumentObject = oldDocument.toObject();
-      const currentDocument = oldDocument.normalizeObjectWithModel({
-        ...oldDocumentObject,
-        ...Object.entries(updateQuery.$set ?? updateQuery).reduce(
-          (acc, [key, value]) => ({ ...acc, [key]: value }),
-          {}
-        ),
-        ...Object.entries(updateQuery.$unset ?? {}).reduce(
-          (acc, [key]) => ({ ...acc, [key]: undefined }),
-          {}
-        ),
-      });
+        const oldDocument = await this.findOne(queryConditions).clone();
+        const oldDocumentObject = oldDocument.toObject();
+        const currentDocument = oldDocument.normalizeObjectWithModel({
+          ...oldDocumentObject,
+          ...Object.entries(updateQuery?.$set ?? updateQuery).reduce(
+            (acc, [key, value]) => ({ ...acc, [key]: value }),
+            {}
+          ),
+          ...Object.entries(updateQuery?.$unset ?? {}).reduce(
+            (acc, [key]) => ({ ...acc, [key]: undefined }),
+            {}
+          ),
+        });
 
-      // Add [Symbol.iterator]() method to Record<string, any> type
-      type RecordWithIterator = Record<string, any> & {
-        [Symbol.iterator](): IterableIterator<any>;
-      };
+        // Add [Symbol.iterator]() method to Record<string, any> type
+        // type RecordWithIterator = Record<string, any> & {
+        //   [Symbol.iterator](): IterableIterator<any>;
+        // };
 
-      const normalizedDocument: RecordWithIterator = currentDocument;
+        // const normalizedDocument: RecordWithIterator = currentDocument;
 
-      await saveHistory({
-        action,
-        method,
-        modelName,
-        modifiedBy,
-        collectionName,
-        currentDocument,
-        oldDocument: oldDocumentObject,
-        connection,
-        options,
-      });
+        await saveHistory({
+          action,
+          method,
+          modelName,
+          modifiedBy,
+          collectionName,
+          currentDocument,
+          oldDocument: oldDocumentObject,
+          connection,
+          options,
+        });
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
 
       next();
     }
@@ -361,26 +380,30 @@ function saveHistory({
   connection: Connection;
   options?: IPluginOptions;
 }): Promise<void> {
-  const changes = deepDiff({
-    currentDocument,
-    oldDocument,
-    omitPaths: options?.omitPaths,
-    keepNewKeys: options?.keepNewKeys,
-  });
-  // console.log({ changes });
-  if (changes) {
-    const history = initializeDefaultSchema({ connection, options });
-    return new history({
-      action,
-      method,
-      modifiedBy,
-      documentId: oldDocument?._id ?? null,
-      modelName,
-      collectionName,
-      oldDocument: options?.diffOnly ? undefined : oldDocument,
-      currentDocument: options?.diffOnly ? undefined : currentDocument,
-      changes,
-    }).save();
+  try {
+    const changes = deepDiff({
+      currentDocument,
+      oldDocument,
+      omitPaths: options?.omitPaths,
+      keepNewKeys: options?.keepNewKeys,
+    });
+    if (changes) {
+      const history = initializeDefaultSchema({ connection, options });
+      return new history({
+        action,
+        method,
+        modifiedBy,
+        documentId: oldDocument?._id ?? null,
+        modelName,
+        collectionName,
+        oldDocument: options?.diffOnly ? undefined : oldDocument,
+        currentDocument: options?.diffOnly ? undefined : currentDocument,
+        changes,
+      }).save();
+    }
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
   return Promise.resolve();
 }

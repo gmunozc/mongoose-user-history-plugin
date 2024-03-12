@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 /**
  * Type definition for objects that can be compared.
  */
@@ -45,13 +46,17 @@ function deepDiff({
 
     const newValue = currentDocument[key] ?? null;
     const oldValue = oldDocument[key] ?? null;
-
+    // console.log({ key, newValue, oldValue });
     const areObjects = (val: any) => typeof val === 'object' && val !== null;
 
     // Handle cases where one or both values are null or undefined
-    if (newValue === oldValue) return;
+    if (newValue === oldValue) {
+      // console.log('same ');
+      return;
+    }
 
     if (!currentDocument.hasOwnProperty(key) && keepNewKeys) {
+      // console.log('keepNewKeys');
       if (keepNewKeys) {
         diff[key] = { new: newValue, old: oldValue };
       }
@@ -59,7 +64,11 @@ function deepDiff({
     }
 
     if (areObjects(newValue) && areObjects(oldValue)) {
-      if (Array.isArray(newValue) && Array.isArray(oldValue)) {
+      // console.log('areObjects');
+      if (newValue instanceof Types.ObjectId && oldValue instanceof Types.ObjectId) {
+        // console.log('ObjectId');
+        if (!newValue.equals(oldValue)) diff[key] = { new: newValue, old: oldValue };
+      } else if (Array.isArray(newValue) && Array.isArray(oldValue)) {
         if (!arrayEquals(newValue, oldValue)) diff[key] = { new: newValue, old: oldValue };
       } else if (newValue instanceof Date && oldValue instanceof Date) {
         if (newValue.getTime() !== oldValue.getTime()) diff[key] = { new: newValue, old: oldValue };
@@ -72,6 +81,7 @@ function deepDiff({
         if (deeperDiff) diff[key] = deeperDiff;
       }
     } else if (newValue !== oldValue) {
+      // console.log('newValue !== oldValue');
       diff[key] = { new: newValue, old: oldValue };
     }
   });
