@@ -1,6 +1,6 @@
 {
   "name": "mongoose-user-history-plugin",
-  "version": "0.5.38",
+  "version": "0.5.48",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -29,6 +29,7 @@
     "user",
     "nestjs",
     "express",
+    "tsup",
     "typescript"
   ],
   "dependencies": {

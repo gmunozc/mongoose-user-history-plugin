@@ -92,7 +92,7 @@ function HistoryPlugin<T extends Document<any, any, any>>(
 
   schema.pre('save', async function (this: T & ICustomDocument, next): Promise<void> {
     const doc = this;
-    const { collectionName } = doc.collection;
+    const { collectionName } = doc.collection ?? {};
     const { modelName } = doc.constructor as any;
     const connection = doc.db;
     let action = 'undefined';
@@ -115,17 +115,19 @@ function HistoryPlugin<T extends Document<any, any, any>>(
       oldDocument = this.normalizeObjectWithModel(oldDocument ?? {});
     }
 
-    await saveHistory({
-      action,
-      method,
-      oldDocument,
-      currentDocument,
-      modelName,
-      modifiedBy,
-      collectionName,
-      connection,
-      options,
-    });
+    if (collectionName) {
+      await saveHistory({
+        action,
+        method,
+        oldDocument,
+        currentDocument,
+        modelName,
+        modifiedBy,
+        collectionName,
+        connection,
+        options,
+      });
+    }
     next();
   });
 
@@ -172,7 +174,7 @@ function HistoryPlugin<T extends Document<any, any, any>>(
 
     modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-    console.log({ modelName, action: method, queryConditions, modifiedBy });
+    // console.log({ modelName, action: method, queryConditions, modifiedBy });
 
     /*await saveHistory({
       action,
@@ -241,14 +243,14 @@ function HistoryPlugin<T extends Document<any, any, any>>(
 
     modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-    console.log({
-      key: '/update|updateMany/',
-      modelName,
-      action: method,
-      queryConditions,
-      updateOperation,
-      modifiedBy,
-    });
+    // console.log({
+    //   key: '/update|updateMany/',
+    //   modelName,
+    //   action: method,
+    //   queryConditions,
+    //   updateOperation,
+    //   modifiedBy,
+    // });
 
     /*await saveHistory({
       action,
@@ -307,14 +309,14 @@ function HistoryPlugin<T extends Document<any, any, any>>(
 
         modifiedBy = contextService.get(addUserWhoModifies.contextPath);
 
-        console.log({
-          key: '/updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/',
-          modelName,
-          action: method,
-          queryConditions,
-          updateQuery,
-          modifiedBy,
-        });
+        // console.log({
+        //   key: '/updateOne|findOneAndUpdate|findByIdAndUpdate|findOneAndReplace|replaceOne/',
+        //   modelName,
+        //   action: method,
+        //   queryConditions,
+        //   updateQuery,
+        //   modifiedBy,
+        // });
 
         const oldDocument = await this.findOne(queryConditions).clone();
         const oldDocumentObject = oldDocument.toObject();
