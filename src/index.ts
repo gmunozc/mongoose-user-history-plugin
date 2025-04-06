@@ -319,6 +319,12 @@ function HistoryPlugin<T extends Document<any, any, any>>(
         // });
 
         const oldDocument = await this.findOne(queryConditions).clone();
+
+        if (!oldDocument) {
+          // No document found, proceed to the next middleware
+          next();
+          return;
+        }
         const oldDocumentObject = oldDocument.toObject();
         const currentDocument = oldDocument.normalizeObjectWithModel({
           ...oldDocumentObject,
